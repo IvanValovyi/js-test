@@ -1,7 +1,7 @@
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/service-worker.js")
+      .register("/js-test/service-worker.js")
       .then((registration) => {
         console.log(
           "ServiceWorker registration successful with scope: ",
@@ -16,7 +16,7 @@ if ("serviceWorker" in navigator) {
   alert("serviceWorker is not in navigator");
 }
 
-const getPathToVideo = (name) => `public/videos/${name}.mp4`;
+const getPathToVideo = (name) => `/js-test/public/videos/${name}.mp4`;
 
 const allVideos = [
   {

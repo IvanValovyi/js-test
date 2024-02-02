@@ -18,7 +18,7 @@ if ("serviceWorker" in navigator) {
 
 const full = document.querySelector("#full");
 
-full.addEventListener(()=>{
+full.addEventListener("click", ()=>{
 	document.querySelector("html").requestFullscreen()
 })
 

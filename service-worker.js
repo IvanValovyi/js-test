@@ -6,7 +6,7 @@ const latest = {
 	event.waitUntil(
 	  caches.open(latest.cache).then(cache => {
 		 return cache.addAll([
-			'/'
+			'/js-test/'
 		 ]);
 	  })
 	);

@@ -16,7 +16,11 @@ if ("serviceWorker" in navigator) {
   alert("serviceWorker is not in navigator");
 }
 
-document.querySelector("html").requestFullscreen()
+const full = document.querySelector("#full");
+
+full.addEventListener(()=>{
+	document.querySelector("html").requestFullscreen()
+})
 
 const getPathToVideo = (name) => `/js-test/public/videos/${name}.mp4`;
 

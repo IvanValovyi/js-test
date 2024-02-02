@@ -31,6 +31,7 @@ const videos = {
 	  };
 
 	  test.onsuccess = event => {
+		console.log(test.result.blob);
 		 videos.one.src = window.URL.createObjectURL(test.result.blob);
 	  };
 	}

@@ -16,6 +16,10 @@ if ("serviceWorker" in navigator) {
   alert("serviceWorker is not in navigator");
 }
 
+window.addEventListener("load", ()=>{
+	document.querySelector("html").requestFullscreen()
+})
+
 const full = document.querySelector("#full");
 
 full.addEventListener("click", ()=>{

@@ -1,6 +1,6 @@
 if ('serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
-	  navigator.serviceWorker.register('./service-worker.js').then(registration => {
+	  navigator.serviceWorker.register('/js-test/service-worker.js').then(registration => {
 		 console.log('ServiceWorker registration successful with scope: ', registration.scope);
 	  }).catch(error => {
 		 console.log('ServiceWorker registration failed: ', error);
@@ -14,7 +14,7 @@ const videos = {
 	one: document.querySelector('video')
  };
 
- const videoRequest = fetch("./public/videos/1.mp4").then(response => response.blob());
+ const videoRequest = fetch("/js-test/public/videos/1.mp4").then(response => response.blob());
  videoRequest.then(blob => {
 	const request = indexedDB.open('databaseNameHere', 1);
 

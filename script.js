@@ -1,158 +1,65 @@
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/js-test/service-worker.js")
-      .then((registration) => {
-        console.log(
-          "ServiceWorker registration successful with scope: ",
-          registration.scope
-        );
-      })
-      .catch((error) => {
-        console.log("ServiceWorker registration failed: ", error);
-      });
-  });
-} else {
-  alert("serviceWorker is not in navigator");
-}
+const video = document.getElementById("video");
+const startRecordBtn = document.getElementById("startRecord");
+const stopRecordBtn = document.getElementById("stopRecord");
+const recordedVideo = document.getElementById("recorded");
+const errorMsgElement = document.querySelector("span#errorMsg");
 
-const full = document.querySelector("#full");
-
-full.addEventListener("click", ()=>{
-	document.querySelector("html").requestFullscreen();
-	full.style.display = "none";
-})
-
-const getPathToVideo = (name) => `/js-test/public/videos/${name}.mp4`;
-
-const allVideos = [
-  {
-    path: getPathToVideo("1"),
-    name: 1,
+const constraints = {
+  audio: true,
+  video: {
+    width: 640,
+    height: 480,
   },
-  {
-    path: getPathToVideo("2"),
-    name: 2,
-  },
-  {
-    path: getPathToVideo("3"),
-    name: 3,
-  },
-  {
-    path: getPathToVideo("4"),
-    name: 4,
-  },
-  {
-    path: getPathToVideo("5"),
-    name: 5,
-  },
-  {
-    path: getPathToVideo("6"),
-    name: 6,
-  },
-  {
-    path: getPathToVideo("7"),
-    name: 7,
-  },
-  {
-    path: getPathToVideo("8"),
-    name: 8,
-  },
-  {
-    path: getPathToVideo("9"),
-    name: 9,
-  },
-  {
-    path: getPathToVideo("10"),
-    name: 10,
-  },
-];
-
-function loadAllVideos() {
-  allVideos.forEach((video) => {
-    addVideoToDB(video.path, video.name);
-  });
-}
-
-const videosContainer = document.querySelector("#videos_container");
-let loading = document.querySelector("#loading");
-
-const request = indexedDB.open("videos", 1);
-
-request.onsuccess = (event) => {
-	loadAllVideos()
 };
 
-request.onupgradeneeded = (event) => {
-  const db = event.target.result;
+let mediaRecorder;
+let recordedChunks = [];
 
-  const objectStore = db.createObjectStore("videos", { keyPath: "name" });
-
-  objectStore.transaction.oncomplete = (event) => {
-	loadAllVideos()
-  };
-};
-
-function addVideoToDB(path, name) {
-  const videoRequest = fetch(path).then((response) => response.blob());
-  videoRequest.then((blob) => {
-    const transaction = request.result.transaction(["videos"], "readwrite");
-    const objectStore = transaction.objectStore("videos");
-
-    // Перевірка наявності запису за ключем
-    const getRequest = objectStore.get(name);
-
-    getRequest.onsuccess = (event) => {
-      const existingData = event.target.result;
-
-      if (existingData) {
-        console.log(
-          `Відео з ключем ${name} вже існує. Запуск функції loadVideo...`
-        );
-        loadVideo({ name });
-      } else {
-        // Якщо запис не існує, додаємо його
-        const requestAdd = objectStore.add({ name, blob });
-
-        requestAdd.onsuccess = () => {
-          console.log(`Відео з ключем ${name} успішно додано до бази даних.`);
-          loadVideo({ name });
-        };
-
-        requestAdd.onerror = (event) => {
-          console.error(
-            `Помилка додавання відео до бази даних: ${event.target.error}`
-          );
-        };
-      }
-    };
-
-    getRequest.onerror = (event) => {
-      console.error(
-        `Помилка перевірки наявності запису: ${event.target.error}`
-      );
-    };
-  });
+// Access webcam
+async function init() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    handleSuccess(stream);
+  } catch (e) {
+    errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
+  }
 }
 
-function loadVideo({ name }) {
-  const transaction = request.result.transaction(["videos"], "readwrite");
-  const objectStore = transaction.objectStore("videos");
+// Success
+function handleSuccess(stream) {
+  window.stream = stream;
+  video.srcObject = stream;
 
-  const test = objectStore.get(name);
+  // Create MediaRecorder
+  mediaRecorder = new MediaRecorder(stream);
 
-  test.onerror = (event) => {
-    console.log("error");
+  // Setup data available event
+  mediaRecorder.ondataavailable = function (event) {
+    recordedChunks.push(event.data);
   };
 
-  test.onsuccess = (event) => {
-    console.log(test);
-    const video = document.createElement("video");
-    video.controls = true;
-    video.src = window.URL.createObjectURL(test.result.blob);
-
-    videosContainer.append(video);
-
-    loading.style.display = "none";
+  // Setup stopped event
+  mediaRecorder.onstop = function () {
+    const blob = new Blob(recordedChunks, { type: "video/webm" });
+    recordedChunks = [];
+    recordedVideo.src = URL.createObjectURL(blob);
+    recordedVideo.controls = true;
   };
 }
+
+startRecordBtn.addEventListener("click", () => {
+  mediaRecorder.start();
+  startRecordBtn.disabled = true;
+  stopRecordBtn.disabled = false;
+});
+
+stopRecordBtn.addEventListener("click", () => {
+  mediaRecorder.stop();
+  startRecordBtn.disabled = false;
+  stopRecordBtn.disabled = true;
+});
+
+// Load init
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+});
